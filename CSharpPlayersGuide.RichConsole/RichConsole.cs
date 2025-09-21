@@ -53,8 +53,8 @@ public static class RichConsole
         text ??= "";
 
         // ALL CAPS
-        if (textEffects.HasFlag(TextEffects.AllCaps)) text = text.ToUpper();              
-        
+        if (textEffects.HasFlag(TextEffects.AllCaps)) text = text.ToUpper();
+
         // Left, right, and center alignment.
         int length = DetermineDisplayCharacterLength(text);
         int spareSpace = Console.WindowWidth - length;
@@ -64,7 +64,6 @@ public static class RichConsole
         // Applies the command codes and writes the text.
         Console.Write($"{commandCodes}{text}");
     }
-
 
     /// <summary>
     /// Writes a line of text (including a new line) with a specific foreground and background, and text effects applied.
@@ -82,7 +81,7 @@ public static class RichConsole
     /// <param name="element">The element to display in the console window.</param>
     /// <param name="foreground">The color to use for the foreground (text) color. A valu eof null will use the default foreground color.</param>
     /// <param name="background">The color to use for the background. A valu eof null will use the default background color.</param>
-    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>    
+    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>
     public static void Write(object? element, Color? foreground = null, Color? background = null, TextEffects textEffects = TextEffects.None) => Write(element?.ToString(), foreground, background, textEffects);
 
     /// <summary>
@@ -92,9 +91,8 @@ public static class RichConsole
     /// <param name="element">The element to display in the console window.</param>
     /// <param name="foreground">The color to use for the foreground (text) color. A valu eof null will use the default foreground color.</param>
     /// <param name="background">The color to use for the background. A valu eof null will use the default background color.</param>
-    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>    
+    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>
     public static void WriteLine(object? element, Color? foreground = null, Color? background = null, TextEffects textEffects = TextEffects.None) => Write(element?.ToString() + Environment.NewLine, foreground, background, textEffects);
-
 
     /// <summary>
     /// Writes text to the console window with a specific foreground color and set of text effects. The background is the default color.
@@ -103,7 +101,6 @@ public static class RichConsole
     /// <param name="foreground">The foreground (text) color to use.</param>
     /// <param name="textEffects">A set of bit flags for text effects to apply to the rendering of the text.</param>
     public static void Write(string? text, Color? foreground, TextEffects textEffects) => Write(text, foreground, null, textEffects);
-
 
     /// <summary>
     /// Writes a line of text (including a new line) with a specific foreground and text effects applied. The background color will be the default.
@@ -120,7 +117,7 @@ public static class RichConsole
     /// </summary>
     /// <param name="element">The element to display in the console window.</param>
     /// <param name="foreground">The color to use for the foreground (text) color. A value of null will use the default foreground color.</param>
-    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>    
+    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>
     public static void Write(object? element, Color? foreground, TextEffects textEffects) => Write(element?.ToString(), foreground, null, textEffects);
 
     /// <summary>
@@ -130,7 +127,7 @@ public static class RichConsole
     /// </summary>
     /// <param name="element">The element to display in the console window.</param>
     /// <param name="foreground">The color to use for the foreground (text) color. A valu eof null will use the default foreground color.</param>
-    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>    
+    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>
     public static void WriteLine(object? element, Color? foreground, TextEffects textEffects) => Write(element?.ToString() + Environment.NewLine, foreground, null, textEffects);
 
     /// <summary>
@@ -139,7 +136,6 @@ public static class RichConsole
     /// <param name="text">The text to display in the console window.</param>
     /// <param name="textEffects">A set of bit flags for text effects to apply to the rendering of the text.</param>
     public static void Write(string? text, TextEffects textEffects) => Write(text, null, null, textEffects);
-
 
     /// <summary>
     /// Writes a line of text (including a new line) with a specific text effects applied. The foreground and background colors are the default colors.
@@ -154,7 +150,7 @@ public static class RichConsole
     /// other complex object types to the console window.
     /// </summary>
     /// <param name="element">The element to display in the console window.</param>
-    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>    
+    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>
     public static void Write(object? element, TextEffects textEffects) => Write(element?.ToString(), null, null, textEffects);
 
     /// <summary>
@@ -163,16 +159,14 @@ public static class RichConsole
     /// types to the console window. The console is moved to the next line afterward.
     /// </summary>
     /// <param name="element">The element to display in the console window.</param>
-    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>    
+    /// <param name="textEffects">The text effects (italic, underline, all caps, etc.) to apply to the text.</param>
     public static void WriteLine(object? element, TextEffects textEffects) => Write(element?.ToString() + Environment.NewLine, null, textEffects);
-
 
     /// <summary>
     /// Writes text to the console window with default colors and text effects.
     /// </summary>
     /// <param name="text">The text to display in the console window.</param>
     public static void Write(string? text) => Write(text, null, null, TextEffects.None);
-
 
     /// <summary>
     /// Writes a line of text (including a new line) with default colors and text effects.
@@ -194,7 +188,6 @@ public static class RichConsole
 
     public static void WriteLine() => Console.WriteLine();
 
-
     /// <summary>
     /// A convenience method that is (nearly) equivalent to <c cref="Console.ReadLine"/>, so that all of your code can use the <c cref="RichConsole"/> class instead
     /// of having some lines use <c cref="Console"/> while others use <c cref="RichConsole"/>. However, this version promises to return a non-null string, turning
@@ -204,7 +197,7 @@ public static class RichConsole
 
     /// <summary>
     /// A convenience method that is equivalent to <c cref="Console.Clear"/>, so that all of your code can use the <c cref="RichConsole"/> class instead
-    /// of having some lines use <c cref="Console"/> while others use <c cref="RichConsole"/>. 
+    /// of having some lines use <c cref="Console"/> while others use <c cref="RichConsole"/>.
     /// </summary>
     public static void Clear() => Console.Clear();
 

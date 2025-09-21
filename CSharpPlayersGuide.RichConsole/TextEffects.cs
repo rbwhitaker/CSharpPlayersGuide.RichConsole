@@ -13,15 +13,15 @@
 [Flags]
 public enum TextEffects
 {
-    None            = 0,
-    Italics         = 1 << 0,
-    Underline       = 1 << 1,
+    None = 0,
+    Italics = 1 << 0,
+    Underline = 1 << 1,
     DoubleUnderline = 1 << 2,
-    Strikethrough   = 1 << 3,
-    Overline        = 1 << 4,
-    AllCaps         = 1 << 5,
-    Left            = 1 << 6,
-    Center          = 1 << 7,
-    Right           = 1 << 8,
-    Blink           = 1 << 9
+    Strikethrough = 1 << 3,
+    Overline = 1 << 4,
+    AllCaps = 1 << 5,
+    Left = 1 << 6,
+    Center = 1 << 7,
+    Right = 1 << 8,
+    Blink = 1 << 9
 }
