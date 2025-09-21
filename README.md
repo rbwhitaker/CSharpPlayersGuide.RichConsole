@@ -1,5 +1,7 @@
 # Rich Console
 
+![Sample](Sample.png)
+
 This is a small library, mostly meant as a sample NuGet package for my book The C# Player's Guide. However, it is a nice library that provides a clean, simple way to write text with colors (all colors, not just the 16 pre-defined colors in the ConsoleColor enumeration), as well as text effects like underline, italics, and all caps.
 
 The best way to see this in action is to look at the code in the Samples project, especially the one in Program.cs, which is a bit of a tutorial/walkthrough of the major features.
