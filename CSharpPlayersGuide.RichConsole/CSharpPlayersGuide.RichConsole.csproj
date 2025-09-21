@@ -10,6 +10,17 @@
     <Authors>RB Whitaker</Authors>
     <Description>A wrapper around the System.Console class that makes it easier to display colors and text effects like italics, underline, allcaps, etc. This is a small library, and if you need something more, you can also look into things like Spectre.Console as an upgrade.</Description>
     <Copyright>CC0</Copyright>
+    <PackageProjectUrl>https://github.com/rbwhitaker/CSharpPlayersGuide.RichConsole</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/rbwhitaker/CSharpPlayersGuide.RichConsole</RepositoryUrl>
+    <PackageTags>console;color</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
