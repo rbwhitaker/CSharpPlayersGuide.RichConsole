@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Samples/Samples.csproj" />
+  <Project Path="CSharpPlayersGuide.RichConsole/CSharpPlayersGuide.RichConsole.csproj" />
+</Solution>

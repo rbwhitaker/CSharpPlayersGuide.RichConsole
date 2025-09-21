@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>RichConsole (C# Player's Guide Tool)</Title>
+    <Version>6.0.0</Version>
+    <Authors>RB Whitaker</Authors>
+    <Description>A wrapper around the System.Console class that makes it easier to display colors and text effects like italics, underline, allcaps, etc. This is a small library, and if you need something more, you can also look into things like Spectre.Console as an upgrade.</Description>
+    <Copyright>CC0</Copyright>
+  </PropertyGroup>
+
+</Project>
