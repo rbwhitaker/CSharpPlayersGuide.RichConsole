@@ -17,75 +17,191 @@ internal static class Styling
     {
         if (styledText == null) return;
 
-        // Start by parsing the text to get all of the individual start, end, and text markers.
-        List<Token> tokens = [];
+        // Use a ReadOnlySpan<char> for the entire input to avoid unnecessary allocations
+        ReadOnlySpan<char> text = styledText;
+
+        // Reuse a single stack for styles to reduce allocations
+        Stack<Style> styleStack = new();
+        styleStack.Push(new Style(TextEffects.None, null, null));
+
         int index = 0;
-        while (index < styledText.Length)
+        while (index < text.Length)
         {
-            ReadOnlySpan<char> active = ((ReadOnlySpan<char>)styledText).Slice(index); // Despite using ReadOnlySpan here, I suspect we could make all of this _much_ more efficient.
+            ReadOnlySpan<char> remaining = text[index..];
 
-            // This tiny language is simple enough I did it in sort of a brute force way. I've studied parsers before, but I didn't consult with any
-            // resources besides what was kicking around in my brain. I'd accept a PR that turns this into a better example of how to do this "by the book."
-            if (active.Length == 0) tokens.Add(new EndToken(index, 0));
-            else if (active.StartsWith("[/]")) tokens.Add(new EndStyleToken(index, 3));
-            else if (active.StartsWith("\\[")) tokens.Add(new TextToken(index, 2, "["));
-            else if (active.StartsWith("\\\\")) tokens.Add(new TextToken(index, 2, "\\"));
-            else if (active.StartsWith("[")) tokens.Add(ParseStartStyleToken(index, active));
-            else tokens.Add(ParseTextToken(index, active));
-            index += tokens[^1].Length;
-        }
+            if (remaining.IsEmpty) break;
 
-        // This is the actual rendering code, which applies styles as needed and displays text.
-        Stack<Style> style = new();
-        style.Push(new Style(TextEffects.None, null, null));
-        foreach (Token token in tokens)
-        {
-            if (token is EndToken) break;
-            if (token is EndStyleToken) style.Pop();
-            if (token is StartStyleToken t) style.Push(style.Peek() + ParseStartStyleToken(t));
-            if (token is TextToken text) DisplayText(text.Text, style.Peek());
+            if (remaining.StartsWith("[/]"))
+            {
+                // End style tag
+                if (styleStack.Count > 1)
+                    styleStack.Pop();
+                index += 3;
+            }
+            else if (remaining.Length >= 2 && remaining[0] == '\\' && remaining[1] == '[')
+            {
+                // Escaped open bracket
+                DisplayText("[", styleStack.Peek());
+                index += 2;
+            }
+            else if (remaining.Length >= 2 && remaining[0] == '\\' && remaining[1] == '\\')
+            {
+                // Escaped backslash
+                DisplayText("\\", styleStack.Peek());
+                index += 2;
+            }
+            else if (remaining[0] == '[')
+            {
+                // Opening style tag
+                int closingBracket = remaining.IndexOf(']');
+                if (closingBracket > 0)
+                {
+                    // Process style directly from the span
+                    ReadOnlySpan<char> styleContent = remaining[1..closingBracket];
+                    Style newStyle = ParseStyle(styleContent, styleStack.Peek());
+                    styleStack.Push(newStyle);
+                    index += closingBracket + 1;
+                }
+                else
+                {
+                    // Unclosed bracket, treat as text
+                    DisplayText("[", styleStack.Peek());
+                    index++;
+                }
+            }
+            else
+            {
+                // Regular text - find the next special character
+                int nextOpenBracket = remaining.IndexOf('[');
+                int nextBackslash = remaining.IndexOf('\\');
+
+                int endIndex;
+                if (nextOpenBracket < 0 && nextBackslash < 0)
+                {
+                    // No more special characters, process the rest of the text
+                    endIndex = remaining.Length;
+                }
+                else if (nextOpenBracket < 0)
+                {
+                    endIndex = nextBackslash;
+                }
+                else if (nextBackslash < 0)
+                {
+                    endIndex = nextOpenBracket;
+                }
+                else
+                {
+                    endIndex = Math.Min(nextOpenBracket, nextBackslash);
+                }
+
+                // Display the text segment directly from the span
+                if (endIndex > 0)
+                {
+                    DisplayTextSpan(remaining[..endIndex], styleStack.Peek());
+                }
+                index += Math.Max(1, endIndex);
+            }
         }
     }
 
-    // Where text is actually displayed with a given style.
+    // New method to display text directly from a span without allocating a string
+    private static void DisplayTextSpan(ReadOnlySpan<char> text, Style style)
+    {
+        // Convert to string only when needed for the RichConsole API
+        RichConsole.Write(text.ToString(), style.Foreground, style.Background, style.TextEffects);
+    }
+
+    // Keep original DisplayText for compatibility
     private static void DisplayText(string text, Style style)
     {
         RichConsole.Write(text, style.Foreground, style.Background, style.TextEffects);
     }
 
-    private static Style ParseStartStyleToken(StartStyleToken t)
+    // Parse a style directly from a span
+    private static Style ParseStyle(ReadOnlySpan<char> styleAttributes, Style currentStyle)
     {
-        // This is one of the more complex methods here. It parses something like "[blink red underline b:(128,29,0)]" and turns that into a style.
-        // I believe it works great for the happy path, but I haven't done a lot of testing to ensure it fails in smart ways. I'd accept a PR that
-        // adds unit tests and/or addresses failure cases better.
         TextEffects textEffects = TextEffects.None;
         Color? foreground = null;
         Color? background = null;
-        foreach (string attribute in t.Attributes)
+
+        // Split the attributes by space without allocating a string array
+        int startIndex = 0;
+        while (startIndex < styleAttributes.Length)
         {
+            // Find the next space
+            int endIndex = styleAttributes[startIndex..].IndexOf(' ');
+            ReadOnlySpan<char> attribute;
+
+            if (endIndex < 0)
+            {
+                attribute = styleAttributes[startIndex..];
+                startIndex = styleAttributes.Length;
+            }
+            else
+            {
+                attribute = styleAttributes.Slice(startIndex, endIndex);
+                startIndex += endIndex + 1;
+            }
+
+            if (attribute.IsEmpty) continue;
+
+            // Process each attribute
             ref Color? activeBrush = ref foreground;
-            string a = attribute.ToLower();
-            if (a.StartsWith("b:")) activeBrush = ref background;
-            else if (a.StartsWith("f:")) activeBrush = ref foreground;
 
-            if (a[1] == ':') a = a.Substring(2);
+            // Handle prefix (f: or b:)
+            if (attribute.Length > 2 && attribute[1] == ':')
+            {
+                if (attribute[0] is 'b' or 'B')
+                    activeBrush = ref background;
+                else if (attribute[0] is 'f' or 'F')
+                    activeBrush = ref foreground;
 
+                attribute = attribute[2..];
+            }
+
+            // Check for text effects
+            string attributeString = attribute.ToString().ToLower();
             foreach (var option in Enum.GetValues<TextEffects>())
-                if (a == option.ToString().ToLower()) textEffects |= option;
+            {
+                if (attributeString.Equals(option.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                {
+                    textEffects |= option;
+                    break;
+                }
+            }
 
+            // Check for named colors
             foreach (PropertyInfo option in typeof(Colors).GetProperties())
             {
-                if (option.Name.ToLower() == a) activeBrush = (Color?)option.GetValue(null, null);
+                if (option.Name.Equals(attributeString, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    activeBrush = (Color?)option.GetValue(null, null);
+                    break;
+                }
             }
-            if (a.StartsWith("(") && a.EndsWith(")"))
+
+            // Check for RGB color format (r,g,b)
+            if (attribute.Length > 2 && attribute[0] == '(' && attribute[^1] == ')')
             {
-                a = a.Substring(1, a.Length - 2);
-                string[] tokens = a.Split(',');
-                if (byte.TryParse(tokens[0], out byte r) && byte.TryParse(tokens[1], out byte g) && byte.TryParse(tokens[2], out byte b))
-                    activeBrush = new Color(r, g, b);
+                attribute = attribute[1..^1];
+                int firstComma = attribute.IndexOf(',');
+                int secondComma = firstComma >= 0 ? attribute[(firstComma + 1)..].IndexOf(',') + firstComma + 1 : -1;
+
+                if (firstComma > 0 && secondComma > firstComma)
+                {
+                    ReadOnlySpan<char> rSpan = attribute[..firstComma];
+                    ReadOnlySpan<char> gSpan = attribute.Slice(firstComma + 1, secondComma - firstComma - 1);
+                    ReadOnlySpan<char> bSpan = attribute[(secondComma + 1)..];
+
+                    if (byte.TryParse(rSpan, out byte r) && byte.TryParse(gSpan, out byte g) && byte.TryParse(bSpan, out byte b))
+                    {
+                        activeBrush = new Color(r, g, b);
+                    }
+                }
             }
         }
-        return new Style(textEffects, foreground, background);
+
+        return new Style(textEffects, foreground, background) + currentStyle;
     }
 
     /// <summary>
@@ -93,38 +209,11 @@ internal static class Styling
     /// </summary>
     private record Style(TextEffects TextEffects, Color? Foreground, Color? Background)
     {
-        /// Non-null color values in the second style supersede values from the first style, and all set attributes in both the first
-        /// and second style remain set in the resulting style.
+        // Non-null color values in the second style supersede values from the first style, and all set attributes in both the first
+        // and second style remain set in the resulting style.
         public static Style operator +(Style a, Style b)
         {
             return new Style(a.TextEffects | b.TextEffects, b.Foreground ?? a.Foreground, b.Background ?? a.Background);
         }
     }
-
-    private static TextToken ParseTextToken(int startIndex, ReadOnlySpan<char> upcoming)
-    {
-        int nextBracket = upcoming.IndexOf("[");
-        int nextSlash = upcoming.IndexOf("\\");
-        if (nextBracket < 0) nextBracket = upcoming.Length;
-        if (nextSlash < 0) nextSlash = upcoming.Length;
-        int endIndex = Math.Min(nextBracket, nextSlash);
-        return new TextToken(startIndex, endIndex, upcoming.Slice(0, endIndex).ToString());
-    }
-
-    private static StartStyleToken ParseStartStyleToken(int startIndex, ReadOnlySpan<char> upcoming)
-    {
-        int end = upcoming.IndexOf("]");
-        ReadOnlySpan<char> attributes = upcoming.Slice(1, end - 1);
-        return new StartStyleToken(startIndex, end + 1, attributes.ToString().Split(" ").ToArray());
-    }
-
-    private record EndToken(int Start, int Length) : Token(Start, Length);
-
-    private record Token(int Start, int Length);
-
-    private record StartStyleToken(int Start, int Length, string[] Attributes) : Token(Start, Length);
-
-    private record EndStyleToken(int Start, int Length) : Token(Start, Length);
-
-    private record TextToken(int Start, int Length, string Text) : Token(Start, Length);
 }
