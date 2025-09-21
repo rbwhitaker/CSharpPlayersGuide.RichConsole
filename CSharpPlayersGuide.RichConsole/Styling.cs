@@ -18,7 +18,7 @@ internal static class Styling
         if (styledText == null) return;
 
         // Start by parsing the text to get all of the individual start, end, and text markers.
-        List<Token> tokens = [];
+        List<Token> tokens = new();
         int index = 0;
         while (index < styledText.Length)
         {

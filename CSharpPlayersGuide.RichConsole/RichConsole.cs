@@ -34,20 +34,20 @@ public static class RichConsole
         string commandCodes = "";
 
         // These are all either on or off, and we apply the "on" command or "off" command as needed.
-        commandCodes += textEffects.HasFlag(TextEffects.Italics) ? "\e[3m" : "\e[23m";
-        commandCodes += textEffects.HasFlag(TextEffects.Strikethrough) ? "\e[9m" : "\e[29m";
-        commandCodes += textEffects.HasFlag(TextEffects.Overline) ? "\e[53m" : "\e[55m";
-        commandCodes += textEffects.HasFlag(TextEffects.Blink) ? "\e[6m" : "\e[25m";
+        commandCodes += textEffects.HasFlag(TextEffects.Italics) ? "\u001b[3m" : "\u001b[23m";
+        commandCodes += textEffects.HasFlag(TextEffects.Strikethrough) ? "\u001b[9m" : "\u001b[29m";
+        commandCodes += textEffects.HasFlag(TextEffects.Overline) ? "\u001b[53m" : "\u001b[55m";
+        commandCodes += textEffects.HasFlag(TextEffects.Blink) ? "\u001b[6m" : "\u001b[25m";
 
         // These have multiple competing options, and we want to apply them in a particular order. (For example, if they say "underline
         // and double underline," we want double underline to take precedence.
-        if (textEffects.HasFlag(TextEffects.DoubleUnderline)) commandCodes += "\e[21m";
-        else if (textEffects.HasFlag(TextEffects.Underline)) commandCodes += "\e[4m";
-        else commandCodes += "\e[24m";
+        if (textEffects.HasFlag(TextEffects.DoubleUnderline)) commandCodes += "\u001b[21m";
+        else if (textEffects.HasFlag(TextEffects.Underline)) commandCodes += "\u001b[4m";
+        else commandCodes += "\u001b[24m";
 
         // Here is where we account for foreground and background colors. If they pass in null, we'll reset to the default.
-        commandCodes += background?.AnsiBackgroundCode ?? "\e[49m";
-        commandCodes += foreground?.AnsiForegroundCode ?? "\e[39m";
+        commandCodes += background?.AnsiBackgroundCode ?? "\u001b[49m";
+        commandCodes += foreground?.AnsiForegroundCode ?? "\u001b[39m";
 
         // These are not provided by an ANSI command code, but by manual text manipulation.
         text ??= "";
@@ -234,7 +234,7 @@ public static class RichConsole
     // between, which makes it hard to account for them in alignment.
     private static int DetermineDisplayCharacterLength(string text)
     {
-        text = Regex.Replace(text, @"\e\[.*m", m => ""); // ANSI escape codes are not rendered, so we want to strip them.
+        text = Regex.Replace(text, @"\u001b\[.*m", m => ""); // ANSI escape codes are not rendered, so we want to strip them.
         int count = 0;
         text ??= "";
         TextElementEnumerator enumerator = StringInfo.GetTextElementEnumerator(text, 0);

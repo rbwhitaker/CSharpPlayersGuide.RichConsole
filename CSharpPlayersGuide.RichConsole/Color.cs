@@ -8,8 +8,8 @@
 /// <param name="B">The value of the blue channel, presumed to be a value between 0 and 255.</param>
 public record Color(byte R, byte G, byte B)
 {
-    internal string AnsiForegroundCode => $"\e[38;2;{R};{G};{B}m";
-    internal string AnsiBackgroundCode => $"\e[48;2;{R};{G};{B}m";
+    internal string AnsiForegroundCode => $"\u001b[38;2;{R};{G};{B}m";
+    internal string AnsiBackgroundCode => $"\u001b[48;2;{R};{G};{B}m";
     
     /// <summary>
     /// Returns a string in the format "(R,G,B)".
