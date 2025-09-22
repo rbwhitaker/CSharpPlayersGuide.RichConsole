@@ -10,7 +10,7 @@ public record Color(byte R, byte G, byte B)
 {
     internal string AnsiForegroundCode => $"\e[38;2;{R};{G};{B}m";
     internal string AnsiBackgroundCode => $"\e[48;2;{R};{G};{B}m";
-    
+
     /// <summary>
     /// Returns a string in the format "(R,G,B)".
     /// </summary>

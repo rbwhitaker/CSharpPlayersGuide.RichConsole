@@ -14,7 +14,7 @@
 public enum TextEffects
 {
     None            = 0,
-    Italics          = 1 << 0,
+    Italics         = 1 << 0,
     Underline       = 1 << 1,
     DoubleUnderline = 1 << 2,
     Strikethrough   = 1 << 3,

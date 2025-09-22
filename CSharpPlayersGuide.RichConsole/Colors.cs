@@ -1,4 +1,4 @@
-﻿namespace CSharpPlayersGuide.RichConsole;
+﻿﻿namespace CSharpPlayersGuide.RichConsole;
 
 /// <summary>
 /// Defines a list of predefined colors that can be used with the <cref>ColoredConsole</cref> class. These are the colors defined on <a href=https://en.wikipedia.org/wiki/Web_colors"></a>the Wikipedia page about web colors</a>.
