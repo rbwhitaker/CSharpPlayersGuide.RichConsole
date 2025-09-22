@@ -4,8 +4,8 @@ namespace CSharpPlayersGuide.RichConsole;
 
 /// <summary>
 /// Handles styled text such as "[italic]Hello![/] My favorite colors are [red]red[/], [green underline]green[/], and [cerulean blink]blue[/]!"
-/// Warning: Here be dragons. This is complicated code that uses regular expressions and a parser for a domain-specific language. It's not for the
-/// faint of heart, but there's also some interesting things to see here.
+/// Warning: Here be dragons. This is complicated code that uses a lot of advanced C# features and other programming concepts. It's not for the
+/// faint of heart, but there's also some interesting things to see here, for the curious.
 /// </summary>
 internal static class Styling
 {
@@ -104,43 +104,42 @@ internal static class Styling
         }
     }
 
-    // New method to display text directly from a span without allocating a string
+    // Displays a span of text with a given style.
     private static void DisplayTextSpan(ReadOnlySpan<char> text, Style style)
     {
         // Convert to string only when needed for the RichConsole API
         RichConsole.Write(text.ToString(), style.Foreground, style.Background, style.TextEffects);
     }
 
-    // Keep original DisplayText for compatibility
+    // Displays a string with a given style.
     private static void DisplayText(string text, Style style)
     {
         RichConsole.Write(text, style.Foreground, style.Background, style.TextEffects);
     }
 
-    // Parse a style directly from a span
     private static Style ParseStyle(ReadOnlySpan<char> styleAttributes, Style currentStyle)
     {
         TextEffects textEffects = TextEffects.None;
         Color? foreground = null;
         Color? background = null;
 
-        // Split the attributes by space without allocating a string array
+        // Split the attributes
         int startIndex = 0;
         while (startIndex < styleAttributes.Length)
         {
             // Find the next space
-            int endIndex = styleAttributes[startIndex..].IndexOf(' ');
+            int length = styleAttributes[startIndex..].IndexOf(' ');
             ReadOnlySpan<char> attribute;
 
-            if (endIndex < 0)
+            if (length < 0)
             {
                 attribute = styleAttributes[startIndex..];
                 startIndex = styleAttributes.Length;
             }
             else
             {
-                attribute = styleAttributes.Slice(startIndex, endIndex);
-                startIndex += endIndex + 1;
+                attribute = styleAttributes.Slice(startIndex, length);
+                startIndex += length + 1;
             }
 
             if (attribute.IsEmpty) continue;
@@ -163,7 +162,7 @@ internal static class Styling
             string attributeString = attribute.ToString().ToLower();
             foreach (var option in Enum.GetValues<TextEffects>())
             {
-                if (attributeString.Equals(option.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                if (attributeString.Equals(option.ToString(), StringComparison.InvariantCultureIgnoreCase))
                 {
                     textEffects |= option;
                     break;
@@ -173,7 +172,7 @@ internal static class Styling
             // Check for named colors
             foreach (PropertyInfo option in typeof(Colors).GetProperties())
             {
-                if (option.Name.Equals(attributeString, StringComparison.CurrentCultureIgnoreCase))
+                if (option.Name.Equals(attributeString, StringComparison.InvariantCultureIgnoreCase))
                 {
                     activeBrush = (Color?)option.GetValue(null, null);
                     break;
@@ -209,7 +208,7 @@ internal static class Styling
     /// </summary>
     private record Style(TextEffects TextEffects, Color? Foreground, Color? Background)
     {
-        // Non-null color values in the second style supersede values from the first style, and all set attributes in both the first
+        // Non-null color values in the second style supersede values from the first style, and all set effects in both the first
         // and second style remain set in the resulting style.
         public static Style operator +(Style a, Style b)
         {
